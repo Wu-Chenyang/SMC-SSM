@@ -8,18 +8,18 @@ from typing import Tuple
 from copy import deepcopy
 
 class NASMCProposal(nn.Module):
-    def __init__(self, state_dim: int = 2, obs_dim: int = 1, mixture_num: int = 3, hidden_dim: int = 50, lstm_num: int = 1):
+    def __init__(self, state_dim: int = 2, obs_dim: int = 1, mixture_num: int = 3, hidden_dim: int = 50, rnn_num: int = 1):
         super().__init__()
         self.mixture_num = mixture_num
         self.hidden_dim = hidden_dim
         self.state_dim = state_dim
-        self.lstm_num = lstm_num
+        self.rnn_num = rnn_num
         
-        self.lstm = nn.LSTM(obs_dim + state_dim, hidden_dim, lstm_num)
+        self.lstm = nn.LSTM(obs_dim + state_dim, hidden_dim, rnn_num)
         self.h0 = nn.Sequential(
-            nn.Linear(obs_dim, hidden_dim * lstm_num),
+            nn.Linear(obs_dim, hidden_dim * rnn_num),
             nn.Tanh(),
-            nn.Linear(hidden_dim * lstm_num, hidden_dim * lstm_num),
+            nn.Linear(hidden_dim * rnn_num, hidden_dim * rnn_num),
             nn.Tanh()
         )
         self.c0 = deepcopy(self.h0)
@@ -39,8 +39,8 @@ class NASMCProposal(nn.Module):
         )
     
     def prior_proposal(self, observation: torch.Tensor) -> Tuple[D.Distribution, Tuple[torch.Tensor, torch.Tensor]]:
-        h = self.h0(observation).reshape(observation.shape[:-1] + (self.hidden_dim, self.lstm_num)).moveaxis(-1, 0)
-        c = self.c0(observation).reshape(observation.shape[:-1] + (self.hidden_dim, self.lstm_num)).moveaxis(-1, 0)
+        h = self.h0(observation).reshape(observation.shape[:-1] + (self.hidden_dim, self.rnn_num)).moveaxis(-1, 0)
+        c = self.c0(observation).reshape(observation.shape[:-1] + (self.hidden_dim, self.rnn_num)).moveaxis(-1, 0)
         return self.get_distribution(h[-1]), (h,c)
 
     def transition_proposal(self, previous_state: torch.Tensor, observation: torch.Tensor, lstm_state: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[D.Distribution, Tuple[torch.Tensor, torch.Tensor]]:

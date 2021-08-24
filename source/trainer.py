@@ -31,7 +31,7 @@ class NASMCTrainer:
             num_particles: int = 1000,
             sequence_length: int = 50,
             batch_size: int = 12,
-            device_name: str = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+            device_name: str = "cuda" if torch.cuda.is_available() else "cpu",
             seed: int = 95):
         np.random.seed(seed)
         random.seed(seed)
